@@ -1,0 +1,94 @@
+       6
+     /  \
+    5     4
+  /  \     \
+ 3    2     1
+ 
+ ______ ______
+|  N   |  P   |
+|______|______|
+|  5   |  6   |
+|  4   |  6   |
+|  6   | NULL |
+|  3   |  5   |
+|  2   |  5   |
+|  1   |  4   |
+ ------ ------
+
+
+ ______ ______
+| NODE | TYPE |
+|______|______|
+|  6   | ROOT |
+|  5   | INNER|
+|  4   | INNER|
+|  3   | LEAF |
+|  2   | LEAF |
+|  1   | LEAF |
+ ------ ------
+ 
+ 
+ '''
+ APPROACH 1 USING SELF JOIN
+ '''
+ 
+ with temp as
+(
+SELECT 5 AS N, 6 AS P FROM DUAL
+UNION ALL
+SELECT 4 AS N, 6 AS P FROM DUAL
+UNION ALL
+SELECT 6 AS N, NULL AS P FROM DUAL
+UNION ALL
+SELECT 3 AS N, 5 AS P FROM DUAL
+UNION ALL
+SELECT 2 AS N, 5 AS P FROM DUAL
+UNION ALL
+SELECT 1 AS N, 4 AS P FROM DUAL
+)
+--SELECT * FROM TEMP ;
+, FINAL_TABLE AS (
+SELECT CHILD.N AS CHILD, CHILD.P AS PARENT, PARENT.P AS GRAND_PARENT --case when parent.P is null then 'ROOT' END 
+FROM TEMP child
+LEFT join temp parent
+on (child.P = parent.N)
+)
+SELECT CHILD AS NODE, 
+ CASE WHEN PARENT IS NULL THEN 'ROOT'
+      WHEN PARENT IS NOT NULL AND GRAND_PARENT IS NULL THEN 'INNER'
+      WHEN PARENT IS NOT NULL AND GRAND_PARENT IS NOT NULL THEN 'LEAF' END AS TREE
+FROM FINAL_TABLE
+;
+
+
+ 
+ '''
+ APPROACH 2 USING HIRARICHAL QUERIES
+ '''
+ 
+ 
+with temp as
+(
+SELECT 5 AS N, 6 AS P FROM DUAL
+UNION ALL
+SELECT 4 AS N, 6 AS P FROM DUAL
+UNION ALL
+SELECT 6 AS N, NULL AS P FROM DUAL
+UNION ALL
+SELECT 3 AS N, 5 AS P FROM DUAL
+UNION ALL
+SELECT 2 AS N, 5 AS P FROM DUAL
+UNION ALL
+SELECT 1 AS N, 4 AS P FROM DUAL
+)
+SELECT 
+--N ,P,LEVEL 
+N AS NODE, CASE WHEN LEVEL = 1 THEN 'ROOT' 
+            WHEN LEVEL = 2 THEN 'INNER' 
+            ELSE 'LEAF' END AS TREE 
+FROM TEMP 
+WHERE 1=1
+START WITH P IS NULL 
+CONNECT BY PRIOR N = P
+ORDER BY 1 DESC 
+;
